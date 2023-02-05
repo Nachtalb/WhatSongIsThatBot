@@ -8,6 +8,7 @@ from aiohttp.client import ClientSession
 from moviepy.editor import AudioFileClip
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.constants import ParseMode
+from telegram.error import BadRequest
 from telegram.ext import (
     ApplicationBuilder,
     CommandHandler,
@@ -117,7 +118,14 @@ def get_song_markup(song: Song) -> tuple[str, InlineKeyboardMarkup]:
 
 
 async def what_song_is_that__audio(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    file = await (update.message.audio or update.message.voice).get_file()
+    try:
+        file = await (update.message.audio or update.message.voice).get_file()
+    except BadRequest as error:
+        if "too big" in error.message:
+            await update.message.reply_text("The provided file is too big :(\n Telegram bots are limited to 20MB")
+            return
+        raise
+
     name = Path(file.file_path).name
     with NamedTemporaryFile(suffix=name) as temp_file:
         path = Path(temp_file.name)
@@ -126,13 +134,19 @@ async def what_song_is_that__audio(update: Update, context: ContextTypes.DEFAULT
 
 
 async def what_song_is_that__video(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    if update.message.video:
-        file = await update.message.video.get_file()
-        file_name = update.message.video.file_name
-    else:
-        file = await update.message.video_note.get_file()
-        file_name = Path(file.file_path).name
-    file = await (update.message.video or update.message.video_note).get_file()
+    try:
+        if update.message.video:
+            file = await update.message.video.get_file()
+            file_name = update.message.video.file_name
+        else:
+            file = await update.message.video_note.get_file()
+            file_name = Path(file.file_path).name
+    except BadRequest as error:
+        if "too big" in error.message:
+            await update.message.reply_text("The provided file is too big :(\n Telegram bots are limited to 20MB")
+            return
+        raise
+
     with NamedTemporaryFile(suffix=file_name) as temp_video:
         await file.download_to_drive(temp_video.name)
         clip = AudioFileClip(temp_video.name)
