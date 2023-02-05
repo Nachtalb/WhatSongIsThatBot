@@ -15,7 +15,8 @@ cd WhatSongIsThatBot
 pip install -r requirements.txt
 ```
 
-Install additional dependency [songrec][songrec-repo] according to its instruction.
+Install additional dependency [songrec][songrec-repo] according to its
+[instruction][songrec-installation].
 
 Copy over the sample config and adjust it's contents.
 
@@ -45,5 +46,7 @@ songrec it's very very slow and much more inaccurate. But I left it in
 here as reference material.
 
 [tgbot]: https://t.me/WhatSongIsThatBot
+[songrec-repo]: https://github.com/marin-m/SongRec
+[songrec-installation]: https://github.com/marin-m/SongRec#installation
 [botfather]: https://t.me/BotFather
 [shazamapi]: https://github.com/Numenorean/ShazamAPI
