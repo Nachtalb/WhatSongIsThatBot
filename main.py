@@ -6,7 +6,7 @@ from tempfile import NamedTemporaryFile
 
 from aiohttp.client import ClientSession
 from moviepy.editor import AudioFileClip
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Message, Update
 from telegram.constants import ParseMode
 from telegram.error import BadRequest
 from telegram.ext import (
@@ -118,11 +118,13 @@ def get_song_markup(song: Song) -> tuple[str, InlineKeyboardMarkup]:
 
 
 async def what_song_is_that__audio(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    message = await update.message.reply_text("Trying to find song info....")
+
     try:
         file = await (update.message.audio or update.message.voice).get_file()
     except BadRequest as error:
         if "too big" in error.message:
-            await update.message.reply_text("The provided file is too big :(\n Telegram bots are limited to 20MB")
+            await message.edit_text("The provided file is too big :(\nTelegram bots are limited to 20MB")
             return
         raise
 
@@ -130,10 +132,12 @@ async def what_song_is_that__audio(update: Update, context: ContextTypes.DEFAULT
     with NamedTemporaryFile(suffix=name) as temp_file:
         path = Path(temp_file.name)
         await file.download_to_drive(path)
-        await what_song_is_that(update, context, path)
+        await what_song_is_that(update, context, path, message)
 
 
 async def what_song_is_that__video(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    message = await update.message.reply_text("Trying to find song info....")
+
     try:
         if update.message.video:
             file = await update.message.video.get_file()
@@ -143,7 +147,7 @@ async def what_song_is_that__video(update: Update, context: ContextTypes.DEFAULT
             file_name = Path(file.file_path).name
     except BadRequest as error:
         if "too big" in error.message:
-            await update.message.reply_text("The provided file is too big :(\n Telegram bots are limited to 20MB")
+            await message.edit_text("The provided file is too big :(\nTelegram bots are limited to 20MB")
             return
         raise
 
@@ -153,22 +157,22 @@ async def what_song_is_that__video(update: Update, context: ContextTypes.DEFAULT
         with NamedTemporaryFile(suffix=".ogg") as temp_audio:
             path = Path(temp_audio.name)
             clip.write_audiofile(temp_audio.name)
-            await what_song_is_that(update, context, path)
+            await what_song_is_that(update, context, path, message)
 
 
-async def what_song_is_that(update: Update, context: ContextTypes.DEFAULT_TYPE, path: Path) -> None:
-    message = await update.message.reply_text("Trying to find song info....")
-
+async def what_song_is_that(
+    update: Update, context: ContextTypes.DEFAULT_TYPE, path: Path, initial_msg: Message
+) -> None:
     try:
         async with ClientSession() as session:
             if song := await recognise_song(path, session):
                 text, markup = get_song_markup(song)
-                await message.edit_text(f"<b>🎶 {text}</b>", reply_markup=markup, parse_mode=ParseMode.HTML)
+                await initial_msg.edit_text(f"<b>🎶 {text}</b>", reply_markup=markup, parse_mode=ParseMode.HTML)
             else:
-                await message.edit_text(f"<b>Could not find any matches</b>", parse_mode=ParseMode.HTML)
+                await initial_msg.edit_text(f"<b>Could not find any matches</b>", parse_mode=ParseMode.HTML)
 
     except:
-        await message.edit_text("Something went wrong :(")
+        await initial_msg.edit_text("Something went wrong :(")
         raise
 
 
