@@ -29,6 +29,8 @@ cp config.sample.json config.json
 | `token` | Telegram bot token acquired via [BotFather][botfather] |
 | `songrec` | Path to songrec's binary |
 
+### With webhook
+
 To run in webhook mode, add these additional settings to your `config.json`.
 `{token}` will be automatically filled in.
 
@@ -47,6 +49,22 @@ To run in webhook mode, add these additional settings to your `config.json`.
 
 Like this the hook will be started on `0.0.0.0:9001/your_token` and Telegram
 connects via `https://example.com/your_token`.
+
+### As a service
+
+You can copy the `wsit.service` over to `/etc/systemd/system/` or
+`~/.config/systemd/user/` to run the bot as a service. Once you have copied
+the file over, you have to adjust the paths inside it. Then:
+
+```bash
+# If it's inside ~/.config/systemd/user/ folder
+systemctl --user daemon-reload               # load the service
+systemctl --user enable --now wsit.service   # start the service on boot up and now
+
+# Otherwise on system level
+sudo systemctl daemon-reload
+sudo systemctl enable --now wsit.service
+```
 
 ## Usage
 

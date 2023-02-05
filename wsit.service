@@ -1,0 +1,12 @@
+[Unit]
+Description=WhatSongIsThat Telegram Bot Service
+
+[Service]
+WorkingDirectory=/path/to/WhatSongIsThatBot
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/path/to/python /path/to/WhatSongIsThatBot/main.py
+
+Restart=on-failure
+
+[Install]
+WantedBy=default.target
