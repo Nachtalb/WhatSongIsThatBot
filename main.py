@@ -164,4 +164,13 @@ app = ApplicationBuilder().token(CONFIG["token"]).build()
 app.add_handler(CommandHandler("start", start))
 app.add_handler(MessageHandler(filters.AUDIO | filters.VOICE, what_song_is_that__audio))
 app.add_handler(MessageHandler(filters.VIDEO | filters.VIDEO_NOTE, what_song_is_that__video))
-app.run_polling()
+
+if hook := CONFIG.get("webhook"):
+    app.run_webhook(
+        listen=hook["host"],
+        port=hook["port"],
+        url_path=hook["path"].format(**CONFIG),
+        webhook_url=f"{hook['url']}/{hook['path'].format(**CONFIG)}",
+    )
+else:
+    app.run_polling()

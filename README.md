@@ -29,6 +29,25 @@ cp config.sample.json config.json
 | `token` | Telegram bot token acquired via [BotFather][botfather] |
 | `songrec` | Path to songrec's binary |
 
+To run in webhook mode, add these additional settings to your `config.json`.
+`{token}` will be automatically filled in.
+
+```json
+{
+    // ...
+
+    "webhook": {
+        "port": 9001,
+        "host": "0.0.0.0",
+        "path": "{token}",
+        "url": "https://example.com"
+    }
+}
+```
+
+Like this the hook will be started on `0.0.0.0:9001/your_token` and Telegram
+connects via `https://example.com/your_token`.
+
 ## Usage
 
 There are no fancy option or whatever needed, just run the main.py file.
