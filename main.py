@@ -22,8 +22,18 @@ DOWNLOAD_DIR.mkdir(exist_ok=True)
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if update.effective_user:
+        name = " " + update.effective_user.full_name
+    elif update.effective_chat:
+        name = " " + update.effective_chat.title
+    else:
+        name = ""
+
     await update.message.reply_text(
-        f"Hello {update.effective_user.full_name}, send me a piece of music and I'll try to find it's name :)"
+        f"Hello{name}, send me some music in audio or video form and I'll try and identify the songname :)\n\nI was"
+        " built by @Nachtalb and you can find my source code <a"
+        " href='https://github.com/Nachtalb/WhatSongIsThatBot'>here</a>",
+        parse_mode=ParseMode.HTML,
     )
 
 
@@ -36,7 +46,7 @@ class Song:
 
 
 async def recognise_song(path: Path, session: ClientSession):
-    proc = await create_subprocess_exec("/usr/sbin/songrec", "audio-file-to-recognized-song", path, stdout=PIPE)
+    proc = await create_subprocess_exec(CONFIG["songrec"], "audio-file-to-recognized-song", path, stdout=PIPE)
     raw = (await proc.communicate())[0].strip()
 
     track: dict = json.loads(raw).get("track")  # type: ignore
