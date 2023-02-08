@@ -54,10 +54,12 @@ async def recognise_song(path: Path, session: ClientSession):
     if not track:
         return
 
-    providers = [
+    providers: list[tuple[str, str, int]] = [
         (f"{track['title']} by {track['subtitle']}", track["url"], 0),
-        ("Apple Music", f"https://music.apple.com/album/{track['albumadamid']}", 2),
     ]
+
+    if "albumadamid" in track:
+        providers.append(("Apple Music", f"https://music.apple.com/album/{track['albumadamid']}", 2))
 
     for section in track["sections"]:
         if yt_url := section.get("youtubeurl"):
